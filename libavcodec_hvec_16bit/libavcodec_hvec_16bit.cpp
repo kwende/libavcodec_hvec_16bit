@@ -30,7 +30,7 @@ int second_attempt()
 {
 	const int width = 512;
 	const int height = 512;
-	const char* saveH264Path = "c:/users/ben/desktop/test.mp4";
+	const char* saveH264Path = "c:/users/brush/desktop/test.mp4";
 	const AVPixelFormat destFormat = AV_PIX_FMT_YUV420P12;
 	const int FPS = 25; 
 	const int DurationInSeconds = 10; 
@@ -97,9 +97,9 @@ int second_attempt()
 		return -1;
 	}
 
-	auto swsContext = sws_getContext(512, 512, AVPixelFormat::AV_PIX_FMT_RGB24, 512, 512, destFormat, SWS_BICUBIC, nullptr, nullptr, nullptr);
+	auto swsContext = sws_getContext(512, 512, AVPixelFormat::AV_PIX_FMT_GRAY16LE, 512, 512, destFormat, SWS_BICUBIC, nullptr, nullptr, nullptr);
 
-	uint8_t* data = new uint8_t[512 * 512 * 3];
+	uint16_t* data = new uint16_t[512 * 512 * 3];
 
 	int seed = 0;
 	AVPacket* packet;
@@ -113,14 +113,12 @@ int second_attempt()
 		{
 			for (int x = 0; x < 512; x++, seed++)
 			{
-				int index = (512 * y + x) * 3;
-				data[index] = (uint8_t)((i * seed) * 50);
-				data[index + 1] = (uint8_t)(index + seed);
-				data[index + 2] = (uint8_t)(50 * (i * seed));
+				int index = (512 * y + x);
+				data[index] = (uint16_t)((i * seed) + 25000);
 			}
 		}
 
-		int inLinesize[1] = { 3 * 512 };
+		int inLinesize[1] = { 2 * 512 };
 		const uint8_t* ptr = (uint8_t*)data;
 		ret = sws_scale(swsContext, (const uint8_t* const*)&ptr, inLinesize, 0, 512, avFrame->data, avFrame->linesize);
 		if (ret < 0)
