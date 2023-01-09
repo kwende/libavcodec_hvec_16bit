@@ -48,7 +48,7 @@ int second_attempt()
 	codecCtx->height = height;
 	codecCtx->width = width;
 	codecCtx->max_b_frames = 0;
-	codecCtx->bit_rate = 300000;
+	codecCtx->bit_rate = 600000;
 	codecCtx->pix_fmt = destFormat;
 
 	codecCtx->qmin = 10;
@@ -98,8 +98,11 @@ int second_attempt()
 	}
 
 	auto swsContext = sws_getContext(512, 512, AVPixelFormat::AV_PIX_FMT_GRAY16LE, 512, 512, destFormat, SWS_BICUBIC, nullptr, nullptr, nullptr);
+	auto swsContext2 = sws_getContext(512, 512, AV_PIX_FMT_YUV420P12, 512, 512, AVPixelFormat::AV_PIX_FMT_GRAY16LE, SWS_BICUBIC, nullptr, nullptr, nullptr);
 
-	uint16_t* data = new uint16_t[512 * 512 * 3];
+	uint16_t* data = new uint16_t[512 * 512 * 2];
+
+	uint16_t* data2 = new uint16_t[512 * 512 * 2];
 
 	int seed = 0;
 	AVPacket* packet;
@@ -114,13 +117,19 @@ int second_attempt()
 			for (int x = 0; x < 512; x++, seed++)
 			{
 				int index = (512 * y + x);
-				data[index] = (uint16_t)((i * seed) + 25000);
+				data[index] = (uint16_t)(7000);
 			}
 		}
 
 		int inLinesize[1] = { 2 * 512 };
 		const uint8_t* ptr = (uint8_t*)data;
+		const uint8_t* ptr2 = (uint8_t*)data2;
 		ret = sws_scale(swsContext, (const uint8_t* const*)&ptr, inLinesize, 0, 512, avFrame->data, avFrame->linesize);
+
+		ret = sws_scale(swsContext2, (const uint8_t* const*)avFrame->data, avFrame->linesize, 0, 512, (uint8_t* const*)&ptr2, inLinesize);
+
+		uint16_t* lumaChannel = (uint16_t*)avFrame->data[0]; 
+
 		if (ret < 0)
 		{
 			print_error(ret);
